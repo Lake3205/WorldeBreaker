@@ -45,13 +45,40 @@ function reset() {
 function useSuggestion() {
   currentGuess.value = nextSuggestion.value
 }
+
+function editLast() {
+  if (guesses.value.length === 0) return
+  
+  // Get the last guess before removing it
+  const lastGuess = guesses.value[guesses.value.length - 1]
+  
+  // Remove last guess from array
+  guesses.value.pop()
+  
+  // Reset solver and replay all remaining guesses
+  solver.reset()
+  for (const guess of guesses.value) {
+    solver.addGuess(guess.word, guess.feedback)
+  }
+  
+  // Update state
+  possibleWords.value = [...solver.possibleWords]
+  const state = solver.getState()
+  nextSuggestion.value = state.nextGuess
+  solved.value = state.solved
+  attemptCount.value = guesses.value.length
+  
+  // Load the removed guess back into the form for editing
+  currentGuess.value = lastGuess.word
+  currentFeedback.value = [...lastGuess.feedback]
+}
 </script>
 
 <template>
   <div class="app">
     <header>
-      <h1>🎯 Wordle Breaker</h1>
-      <p class="subtitle">AI-Powered Wordle Solver</p>
+      <h1>Wordle Breaker</h1>
+      <p class="subtitle">Wordle Solver</p>
     </header>
 
     <main>
@@ -70,34 +97,23 @@ function useSuggestion() {
         </div>
 
         <div class="success-message" v-if="solved">
-          <h2>🎉 Solved in {{ attemptCount }} attempts!</h2>
+          <h2>Solved in {{ attemptCount }} attempts!</h2>
         </div>
 
         <SolverControls
           :suggestion="nextSuggestion"
           :solved="solved"
           :possibleWords="possibleWords"
+          :hasGuesses="guesses.length > 0"
+          :currentGuess="currentGuess"
+          :currentFeedback="currentFeedback"
           @submit="handleFeedbackSubmit"
           @reset="reset"
           @use-suggestion="useSuggestion"
+          @edit-last="editLast"
+          @update:current-guess="val => currentGuess = val"
+          @update:current-feedback="val => currentFeedback = val"
         />
-      </div>
-
-      <div class="instructions">
-        <h3>How to Use:</h3>
-        <ol>
-          <li>Click "Use Suggestion" to get the optimal word to guess</li>
-          <li>Enter the word in Wordle and return here</li>
-          <li>Click on each letter to set the feedback:
-            <ul>
-              <li><span class="demo-tile correct">Green</span> = Correct position</li>
-              <li><span class="demo-tile present">Yellow</span> = Wrong position</li>
-              <li><span class="demo-tile absent">Gray</span> = Not in word</li>
-            </ul>
-          </li>
-          <li>Click "Submit Feedback" to get the next suggestion</li>
-          <li>Repeat until solved!</li>
-        </ol>
       </div>
     </main>
   </div>
@@ -128,17 +144,8 @@ h1 {
 }
 
 main {
-  max-width: 1200px;
+  max-width: 600px;
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 2rem;
-}
-
-@media (max-width: 768px) {
-  main {
-    grid-template-columns: 1fr;
-  }
 }
 
 .game-container {
@@ -178,7 +185,7 @@ main {
 .success-message {
   text-align: center;
   padding: 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #6aaa64;
   color: white;
   border-radius: 12px;
   margin: 2rem 0;
@@ -187,53 +194,5 @@ main {
 .success-message h2 {
   margin: 0;
   font-size: 2rem;
-}
-
-.instructions {
-  background: white;
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.instructions h3 {
-  margin-top: 0;
-  color: #2c3e50;
-}
-
-.instructions ol {
-  padding-left: 1.5rem;
-}
-
-.instructions li {
-  margin-bottom: 0.75rem;
-  line-height: 1.6;
-}
-
-.instructions ul {
-  margin-top: 0.5rem;
-  list-style: none;
-  padding-left: 0;
-}
-
-.demo-tile {
-  display: inline-block;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-weight: bold;
-  color: white;
-  font-size: 0.9rem;
-}
-
-.demo-tile.correct {
-  background: #6aaa64;
-}
-
-.demo-tile.present {
-  background: #c9b458;
-}
-
-.demo-tile.absent {
-  background: #787c7e;
 }
 </style>

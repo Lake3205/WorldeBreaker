@@ -5,70 +5,73 @@ import { FEEDBACK } from '../solver.js'
 const props = defineProps({
   suggestion: String,
   solved: Boolean,
-  possibleWords: Array
+  possibleWords: Array,
+  hasGuesses: Boolean,
+  currentGuess: String,
+  currentFeedback: Array
 })
 
-const emit = defineEmits(['submit', 'reset', 'use-suggestion'])
+const emit = defineEmits(['submit', 'reset', 'use-suggestion', 'edit-last', 'update:current-guess', 'update:current-feedback'])
 
-const currentGuess = ref('')
-const feedback = ref([])
 const showPossibleWords = ref(false)
 
 watch(() => props.suggestion, (newVal) => {
-  if (feedback.value.length === 0) {
-    currentGuess.value = ''
+  if (props.currentFeedback.length === 0) {
+    emit('update:current-guess', '')
   }
 })
 
 function useSuggestion() {
-  currentGuess.value = props.suggestion
-  feedback.value = Array(5).fill(FEEDBACK.ABSENT)
+  emit('update:current-guess', props.suggestion)
+  emit('update:current-feedback', Array(5).fill(FEEDBACK.ABSENT))
 }
 
 function toggleFeedback(index) {
-  if (currentGuess.value.length !== 5) return
+  if (props.currentGuess.length !== 5) return
   
-  if (!feedback.value[index]) {
-    feedback.value[index] = FEEDBACK.ABSENT
-  } else if (feedback.value[index] === FEEDBACK.ABSENT) {
-    feedback.value[index] = FEEDBACK.PRESENT
-  } else if (feedback.value[index] === FEEDBACK.PRESENT) {
-    feedback.value[index] = FEEDBACK.CORRECT
+  const newFeedback = [...props.currentFeedback]
+  
+  if (!newFeedback[index]) {
+    newFeedback[index] = FEEDBACK.ABSENT
+  } else if (newFeedback[index] === FEEDBACK.ABSENT) {
+    newFeedback[index] = FEEDBACK.PRESENT
+  } else if (newFeedback[index] === FEEDBACK.PRESENT) {
+    newFeedback[index] = FEEDBACK.CORRECT
   } else {
-    feedback.value[index] = FEEDBACK.ABSENT
+    newFeedback[index] = FEEDBACK.ABSENT
   }
   
-  feedback.value = [...feedback.value]
+  emit('update:current-feedback', newFeedback)
 }
 
 function submitFeedback() {
-  if (currentGuess.value.length !== 5) {
+  if (props.currentGuess.length !== 5) {
     alert('Please enter a 5-letter word')
     return
   }
   
-  if (feedback.value.length !== 5) {
+  if (props.currentFeedback.length !== 5) {
     alert('Please set feedback for all letters')
     return
   }
   
-  emit('submit', currentGuess.value.toLowerCase(), feedback.value)
-  currentGuess.value = ''
-  feedback.value = []
+  emit('submit', props.currentGuess.toLowerCase(), props.currentFeedback)
+  emit('update:current-guess', '')
+  emit('update:current-feedback', [])
 }
 
 function reset() {
-  currentGuess.value = ''
-  feedback.value = []
+  emit('update:current-guess', '')
+  emit('update:current-feedback', [])
   emit('reset')
 }
 
 function handleInput(event) {
   const value = event.target.value.toLowerCase().replace(/[^a-z]/g, '')
-  currentGuess.value = value.slice(0, 5)
+  emit('update:current-guess', value.slice(0, 5))
   
-  if (currentGuess.value.length === 5 && feedback.value.length === 0) {
-    feedback.value = Array(5).fill(FEEDBACK.ABSENT)
+  if (value.length === 5 && props.currentFeedback.length === 0) {
+    emit('update:current-feedback', Array(5).fill(FEEDBACK.ABSENT))
   }
 }
 </script>
@@ -88,7 +91,7 @@ function handleInput(event) {
     <div class="input-section" v-if="!solved">
       <h3>Enter Your Guess:</h3>
       <input
-        v-model="currentGuess"
+        :value="currentGuess"
         @input="handleInput"
         type="text"
         maxlength="5"
@@ -103,7 +106,7 @@ function handleInput(event) {
             v-for="(letter, index) in currentGuess.split('')"
             :key="index"
             @click="toggleFeedback(index)"
-            :class="['feedback-tile', feedback[index] || 'empty']"
+            :class="['feedback-tile', currentFeedback[index] || 'empty']"
           >
             {{ letter.toUpperCase() }}
           </div>
@@ -135,9 +138,14 @@ function handleInput(event) {
       </div>
     </div>
 
-    <button @click="reset" class="btn btn-reset">
-      🔄 Reset
-    </button>
+    <div class="action-buttons">
+      <button v-if="hasGuesses && !solved" @click="emit('edit-last')" class="btn btn-edit">
+        Edit Last
+      </button>
+      <button @click="reset" class="btn btn-reset">
+        Reset
+      </button>
+    </div>
   </div>
 </template>
 
@@ -298,10 +306,25 @@ h3 {
   background: #e0e0e0;
 }
 
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-edit {
+  background: #ffa500;
+  color: white;
+  flex: 1;
+}
+
+.btn-edit:hover {
+  background: #ff8c00;
+}
+
 .btn-reset {
   background: #ff6b6b;
   color: white;
-  width: 100%;
+  flex: 1;
 }
 
 .btn-reset:hover {

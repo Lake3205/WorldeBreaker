@@ -1,6 +1,6 @@
-# 🎯 Wordle Breaker
+# Wordle Breaker
 
-An AI-powered Wordle solver with an interactive Vue.js frontend. Uses information theory and entropy calculation to find optimal guesses and solve Wordle puzzles efficiently.
+A Wordle solver with an interactive Vue.js frontend. Uses information theory and entropy calculation to find optimal guesses and solve Wordle puzzles efficiently.
 
 ![Wordle Breaker Screenshot](https://github.com/user-attachments/assets/4d760c12-77fe-45ea-9c74-1fb976a243da)
 
@@ -54,18 +54,6 @@ npm run preview
 ```
 
 The app will be available at `http://localhost:5173/`
-
-## Usage
-
-1. **Get Suggestion**: Click "Use Suggestion" to see the optimal word to guess
-2. **Enter in Wordle**: Use that word in your actual Wordle game
-3. **Input Feedback**: Return to Wordle Breaker and enter the word
-4. **Set Colors**: Click each letter tile to cycle through:
-   - **Gray**: Letter not in word
-   - **Yellow**: Letter in word but wrong position  
-   - **Green**: Letter in correct position
-5. **Submit**: Click "Submit Feedback" to get the next suggestion
-6. **Repeat**: Continue until solved!
 
 ## Algorithm Details
 
