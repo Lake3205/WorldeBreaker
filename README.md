@@ -2,8 +2,6 @@
 
 A Wordle solver with an interactive Vue.js frontend. Uses information theory and entropy calculation to find optimal guesses and solve Wordle puzzles efficiently.
 
-![Wordle Breaker Screenshot](https://github.com/user-attachments/assets/4d760c12-77fe-45ea-9c74-1fb976a243da)
-
 ## Features
 
 - **Intelligent Algorithm**: Uses entropy-based information theory to calculate the most optimal guesses
